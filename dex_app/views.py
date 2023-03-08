@@ -6,7 +6,7 @@ from django.core import serializers
 from pydexcom import Dexcom
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from dex_app.models import User
+from dex_app.models import User, Insulin
 from django.core.cache import cache
 
 
@@ -97,6 +97,34 @@ def create_user(request):
 
         # Return a JSON response with the new user's ID
         return JsonResponse({'id': user.id})
+    else:
+        # Return a 405 Method Not Allowed response for unsupported methods
+        return JsonResponse({}, status=405)
+
+
+@csrf_exempt
+def create_insulin(request):
+    if request.method == 'POST':
+        # Parse the request body
+        user_id = request.POST.get('user_id')
+        dose = request.POST.get('dose')
+        time = request.POST.get('time')
+        maker = request.POST.get('maker')
+        type = request.POST.get('type')
+
+        user = get_object_or_404(User, id=user_id)
+
+        # Create a new Insulin object
+        insulin = Insulin.objects.create(
+            user=user,
+            dose=dose,
+            time=time,
+            maker=maker,
+            type=type
+        )
+
+        # Return a JSON response with the new insulin object's ID
+        return JsonResponse({'id': insulin.id})
     else:
         # Return a 405 Method Not Allowed response for unsupported methods
         return JsonResponse({}, status=405)
