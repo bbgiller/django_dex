@@ -33,7 +33,7 @@ def current_glucose(request):
         response_body = {
             "glucose_value": cg.value,
             "mmol": cg.mmol_l,
-            "time": cg.time,
+            "time": cg.time.isoformat(),
             "trend": cg.trend,
             "trend_arrow": cg.trend_arrow,
             "trend_description": cg.trend_description,
