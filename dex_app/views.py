@@ -1,21 +1,42 @@
 from django.http import JsonResponse
-from .settings import dexcom
+from .settings import create_dexcom_session
 from .glucose_list import get_glucose_array
+from django.shortcuts import get_object_or_404
+from django.core import serializers
+from pydexcom import Dexcom
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from dex_app.models import User
+from django.core.cache import cache
+
+
+dexcom_sessions = {}  # a dictionary to store Dexcom sessions by user id
+
 
 def home(request):
     return JsonResponse({'message': 'Welcome to sugars'})
-
+#Glucose
 
 def current_glucose(request):
-    ng = dexcom.get_current_glucose_reading()
-    if ng:
+    id = request.GET.get('id')
+    user = get_object_or_404(User, id=id)
+   
+    if user.id in dexcom_sessions:
+        dexcom = dexcom_sessions[user.id]
+    else:
+        dexcom = create_dexcom_session(user)
+        dexcom_sessions[user.id] = dexcom
+
+    # make the current glucose request using the Dexcom session
+    cg = dexcom.get_current_glucose_reading()
+    if cg:
         response_body = {
-            "glucose_value": ng.value,
-            "mmol": ng.mmol_l,
-            "time": ng.time,
-            "trend": ng.trend,
-            "trend_arrow": ng.trend_arrow,
-            "trend_description": ng.trend_description,
+            "glucose_value": cg.value,
+            "mmol": cg.mmol_l,
+            "time": cg.time.isoformat(),
+            "trend": cg.trend,
+            "trend_arrow": cg.trend_arrow,
+            "trend_description": cg.trend_description,
         }
     else:
         response_body = {
@@ -31,31 +52,31 @@ def current_glucose(request):
 
 
 def glucose_readings_list(request):
-    bg_list = get_glucose_array()
+    id = request.GET.get('id')
+    user = get_object_or_404(User, id=id)
+    if user.id in dexcom_sessions:
+        dexcom = dexcom_sessions[user.id]
+    else:
+        dexcom = create_dexcom_session(user)
+        dexcom_sessions[user.id] = dexcom
+
+    bg_list = get_glucose_array(dexcom_session=dexcom)
     response_body = {
         "glucose_list": bg_list
     }
     return JsonResponse(response_body)
 
-from django.http import JsonResponse
-from django.views.decorators.csrf import csrf_exempt
-from dex_app.models import User
 
 @csrf_exempt
-def get_user(request,id):
-    try:
-        user = User.objects.get(id= id) or User.objects.get(dexcom_id = id)
-        return JsonResponse({
-            'id': user.id,
-            'first_name': user.first_name,
-            'last_name': user.last_name,
-            'firebase_id': user.firebase_id,
-            'dexcom_id': user.dexcom_id,
-        })
-    except User.DoesNotExist:
-        # Return a 404 Not Found response if the user is not found
-        return JsonResponse({}, status=404)
 
+#Users
+def get_user(request,id):
+  
+    user = get_object_or_404(User, id=id)
+    user_data = serializers.serialize('json', [user])
+    user = get_object_or_404(User, id=id)
+    user_data = serializers.serialize('json', [user])
+    return JsonResponse(user_data, safe=False)
 
 
 
