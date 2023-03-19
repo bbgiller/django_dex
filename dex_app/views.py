@@ -8,6 +8,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from dex_app.models import User, Insulin
 from django.core.cache import cache
+import json
 
 
 dexcom_sessions = {}  # a dictionary to store Dexcom sessions by user id
@@ -106,10 +107,13 @@ def create_user(request):
 def create_insulin(request):
     if request.method == 'POST':
         # Parse the request body
-        user_id = request.POST.get('user_id')
-        dose = request.POST.get('dose')
-        time = request.POST.get('time')
-        type = request.POST.get('type')
+        # Parse the JSON request body
+        body = json.loads(request.body)
+        print(request.POST)
+        user_id = body.get('user_id')
+        dose = body.get('dose')
+        time = body.get('time')
+        type = body.get('type')
 
         user = get_object_or_404(User, id=user_id)
 
