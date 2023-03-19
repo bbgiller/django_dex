@@ -13,7 +13,6 @@ class Insulin(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     dose = models.FloatField()
     time = models.DateTimeField()
-    maker = models.CharField(max_length=100)
     type = models.CharField(max_length=5, choices=[('short', 'Short-acting'), ('long', 'Long-acting')])
 
   

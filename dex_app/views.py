@@ -109,7 +109,6 @@ def create_insulin(request):
         user_id = request.POST.get('user_id')
         dose = request.POST.get('dose')
         time = request.POST.get('time')
-        maker = request.POST.get('maker')
         type = request.POST.get('type')
 
         user = get_object_or_404(User, id=user_id)
@@ -119,7 +118,6 @@ def create_insulin(request):
             user=user,
             dose=dose,
             time=time,
-            maker=maker,
             type=type
         )
 
