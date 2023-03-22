@@ -8,4 +8,6 @@ urlpatterns = [
     path('create_user/', views.create_user, name='create_user'),
     path('get_user/<int:id>/', views.get_user, name='get_user'),
     path('create_insulin/', views.create_insulin, name='create_insulin'),
+    path('get_insulins/', views.get_insulins, name='get_insulins'),
+
 ]

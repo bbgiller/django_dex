@@ -102,6 +102,26 @@ def create_user(request):
         # Return a 405 Method Not Allowed response for unsupported methods
         return JsonResponse({}, status=405)
 
+@csrf_exempt
+def get_insulins(request):
+    user_id = request.GET.get('user_id')
+    user = get_object_or_404(User, id=user_id)
+    insulins = user.insulin_set.all()
+
+    insulin_list = []
+    for insulin in insulins:
+        insulin_dict = {
+            "id": insulin.id,
+            "user_id": insulin.user_id,
+            "dose": insulin.dose,
+            "time": insulin.time,
+            "type": insulin.type,
+        }
+        insulin_list.append(insulin_dict)
+    response_body = {
+            "insulins_list": insulin_list
+        }
+    return JsonResponse(response_body)
 
 @csrf_exempt
 def create_insulin(request):
