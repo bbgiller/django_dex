@@ -62,8 +62,9 @@ def glucose_readings_list(request):
         dexcom_sessions[user.id] = dexcom
 
     bg_list = get_glucose_array(dexcom_session=dexcom)
+    ordered_bg_list = list(reversed(bg_list))
     response_body = {
-        "glucose_list": bg_list
+        "glucose_list": ordered_bg_list
     }
     return JsonResponse(response_body)
 
